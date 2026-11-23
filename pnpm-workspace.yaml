@@ -1,0 +1,5 @@
+allowBuilds:
+  # core-js's postinstall only prints a funding banner; nothing needs building.
+  core-js: false
+minimumReleaseAgeExclude:
+  - lucide-react@1.78.0

@@ -49,7 +49,7 @@ export function Headline() {
     <div className="min-w-0">
       <h1 className="truncate text-sm font-medium text-muted">{meta.displayName}</h1>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <span className="tabular text-[28px] font-semibold leading-tight tracking-tight sm:text-[32px]">{formatPrice(value, meta.precision)}</span>
+        <span className="tabular text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-[2rem]">{formatPrice(value, meta.precision)}</span>
         {change !== null && (
           <span className={cx('tabular text-base font-medium', dir > 0 ? 'text-up' : dir < 0 ? 'text-down' : 'text-muted')}>
             {dir > 0 ? '▲' : dir < 0 ? '▼' : '■'} {formatSigned(change, meta.precision)} ({formatPct(pct)})

@@ -102,7 +102,7 @@ export function ExportDialog() {
             onClick={() => void run(it.kind, it.run)}
             className="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left hover:bg-surface-2 disabled:opacity-50"
           >
-            <it.icon size={20} className="text-accent" />
+            <it.icon className="size-[1.25rem] text-accent" />
             <div>
               <div className="text-sm font-medium">{busy === it.kind ? 'Preparing…' : it.title}</div>
               <div className="text-xs text-muted">{it.desc}</div>

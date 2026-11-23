@@ -32,7 +32,7 @@ export function Toasts() {
             </button>
           )}
           <button aria-label="Dismiss" className="text-muted hover:text-ink" onClick={() => dismiss(t.id)}>
-            <X size={14} />
+            <X className="size-[0.875rem]" />
           </button>
         </div>
       ))}

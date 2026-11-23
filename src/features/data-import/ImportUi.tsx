@@ -53,7 +53,7 @@ export function DropOverlay() {
   return (
     <div className="animate-fade pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm">
       <div className="rounded-2xl border-2 border-dashed border-accent bg-surface px-10 py-8 text-center shadow-pop">
-        <FileUp className="mx-auto text-accent" size={28} />
+        <FileUp className="size-[1.75rem] mx-auto text-accent" />
         <div className="mt-2 font-semibold">Drop to load the file</div>
         <div className="text-sm text-muted">CSV or JSON with time and price columns</div>
       </div>
@@ -75,7 +75,7 @@ export function EmptyState() {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90">
-            <FileUp size={15} /> Choose a file
+            <FileUp className="size-[0.9375rem]" /> Choose a file
             <input
               type="file"
               accept=".csv,.txt,.json"
@@ -137,7 +137,7 @@ export function MappingDialog() {
           <thead className="bg-surface-2">
             <tr>
               {header.map((h, i) => (
-                <th key={i} className="min-w-[110px] p-1.5 text-left align-top font-medium">
+                <th key={i} className="min-w-[6.875rem] p-1.5 text-left align-top font-medium">
                   <div className="mb-1 truncate text-muted">{h || `Column ${i + 1}`}</div>
                   <Select
                     label={`Role of ${h}`}
@@ -238,7 +238,7 @@ export function DataNotesDialog() {
           const Icon = n.severity === 'error' ? XCircle : n.severity === 'warn' ? AlertTriangle : Info;
           return (
             <li key={i} className="flex gap-2 text-sm">
-              <Icon size={16} className={cx('mt-0.5 shrink-0', n.severity === 'error' ? 'text-down' : n.severity === 'warn' ? 'text-warn' : 'text-accent')} />
+              <Icon className={cx('mt-0.5 size-[1rem] shrink-0', n.severity === 'error' ? 'text-down' : n.severity === 'warn' ? 'text-warn' : 'text-accent')} />
               <div>
                 {n.message}
                 {n.examples && n.examples.length > 0 && <div className="mt-0.5 text-xs text-muted">{n.examples.slice(0, 6).join(' · ')}</div>}

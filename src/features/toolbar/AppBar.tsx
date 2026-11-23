@@ -17,7 +17,7 @@ import { getEngine } from '../workspace/engineRef';
 export function Logo() {
   return (
     <span className="flex items-center gap-2 font-semibold tracking-tight">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+      <svg width="1.125rem" height="1.125rem" viewBox="0 0 18 18" aria-hidden>
         <path d="M9 1 17 9 9 17 1 9Z" fill="var(--accent)" />
         <path d="M5 10.5 8 7.5l2 2 3-3" stroke="#fff" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -57,7 +57,7 @@ export function AppBar() {
                 'No data'
               )}
             </span>
-            <ChevronDown size={14} className="text-muted" />
+            <ChevronDown className="size-[0.875rem] text-muted" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-1.5">
@@ -79,13 +79,13 @@ export function AppBar() {
                 className="opacity-0 group-hover:opacity-100"
                 onClick={() => void removeDataset(m.id)}
               >
-                <Trash2 size={14} />
+                <Trash2 className="size-[0.875rem]" />
               </IconButton>
             </div>
           ))}
           <div className="my-1 h-px bg-line" />
           <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" onClick={() => fileRef.current?.click()}>
-            <FileUp size={14} /> Import a file…
+            <FileUp className="size-[0.875rem]" /> Import a file…
           </button>
           <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" onClick={() => void loadSample()}>
             <span className="w-3.5 text-center">◆</span> Load the US 500 weekly sample
@@ -93,7 +93,7 @@ export function AppBar() {
         </PopoverContent>
       </Popover>
       <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => fileRef.current?.click()}>
-        <FileUp size={15} /> Import
+        <FileUp className="size-[0.9375rem]" /> Import
       </Button>
       <input
         ref={fileRef}
@@ -109,10 +109,10 @@ export function AppBar() {
       <div className="flex-1" />
       <div className="hidden items-center sm:flex">
         <IconButton label="Undo (Ctrl+Z)" disabled={!past.length} onClick={undo}>
-          <Undo2 size={16} />
+          <Undo2 className="size-[1rem]" />
         </IconButton>
         <IconButton label="Redo (Shift+Ctrl+Z)" disabled={!future.length} onClick={redo}>
-          <Redo2 size={16} />
+          <Redo2 className="size-[1rem]" />
         </IconButton>
       </div>
       <IconButton
@@ -131,16 +131,16 @@ export function AppBar() {
           }
         }}
       >
-        <Ruler size={16} />
+        <Ruler className="size-[1rem]" />
       </IconButton>
       <IconButton label={`Theme: ${theme} (click for ${nextTheme})`} onClick={() => setTheme(nextTheme)}>
-        <ThemeIcon size={16} />
+        <ThemeIcon className="size-[1rem]" />
       </IconButton>
       <IconButton label="Export" disabled={!meta} onClick={() => ui.set({ exportOpen: true })}>
-        <Download size={16} />
+        <Download className="size-[1rem]" />
       </IconButton>
       <IconButton label="Chart settings" active={ui.settingsOpen} onClick={() => ui.set({ settingsOpen: !ui.settingsOpen })}>
-        <Settings2 size={16} />
+        <Settings2 className="size-[1rem]" />
       </IconButton>
       <Link href="/credits" className="hidden px-1 text-xs text-muted hover:text-ink lg:inline">
         Credits

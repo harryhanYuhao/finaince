@@ -104,6 +104,7 @@ One drawer with sections that change with the chart type. Every control applies 
 
 ## 6. Accessibility
 
+- **Interface size** (Settings → Appearance): Auto / Small / Normal / Large / Extra large sets the root font size (14–20 px). All UI sizes are in `rem`, so buttons, icons and text scale together, and chart labels scale by the same factor. CSS pixels already follow OS display scaling. Auto additionally enlarges the UI when a very high-resolution screen runs at 100% scaling (device-pixel ratio 1 and ≥ 2500 CSS px wide), which is common on Linux desktops.
 - All controls are keyboard-reachable (Radix primitives) with visible focus rings.
 - The chart canvas has `role="img"` with a live `aria-label` summary ("US 500 weekly candles from Jan 1998 to Nov 2026, last 6,952.9, down 8.2% this week"). Arrow-key crosshair navigation announces each bar through an `aria-live="polite"` region.
 - Colour contrast is AA for text. Up/down are distinguished by glyph and position as well as colour, and a monochrome candle convention (hollow up, filled down) is available.

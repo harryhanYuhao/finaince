@@ -9,7 +9,7 @@ import { useDerivation } from './useDerivation';
 import { getEngine } from './engineRef';
 import { withAlpha } from '@/render/theme';
 
-const HEIGHT = 36;
+const BASE_HEIGHT = 36;
 
 /**
  * Overview of the whole history with a draggable window for the visible range
@@ -20,6 +20,7 @@ export function OverviewStrip() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const dspec = useDerivation();
   const theme = useChartTheme();
+  const HEIGHT = Math.round(BASE_HEIGHT * theme.scale);
   const visible = useUi((s) => s.visibleRange);
   const [data, setData] = useState<Overview | null>(null);
   const [width, setWidth] = useState(0);

@@ -37,7 +37,10 @@ export function ChartHost() {
     });
     e.mount(el);
     setEngine(e);
+    if (process.env.NODE_ENV !== 'production') (window as unknown as { __fxEngine?: KlcEngine }).__fxEngine = e;
     setLocalEngine(e);
+    // Measure synchronously too: ResizeObserver doesn't fire in background tabs.
+    setWidth(Math.round(el.clientWidth / 40) * 40);
     const ro = new ResizeObserver(([entry]) => {
       // Quantise so the "Auto" step isn't recomputed on every pixel of a resize.
       setWidth(Math.round(entry.contentRect.width / 40) * 40);

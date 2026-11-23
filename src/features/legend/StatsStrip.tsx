@@ -12,9 +12,9 @@ import { intervalPerLabel } from '@/core/time/interval';
 function Stat({ label, value, sub, tone, title }: { label: string; value: string; sub?: string; tone?: number; title?: string }) {
   return (
     <div className="min-w-0" title={title}>
-      <div className="text-[11px] uppercase tracking-wide text-muted">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wide text-muted">{label}</div>
       <div className={cx('tabular text-sm font-semibold', tone !== undefined && (tone > 0 ? 'text-up' : tone < 0 ? 'text-down' : ''))}>{value}</div>
-      {sub && <div className="truncate text-[11px] text-muted">{sub}</div>}
+      {sub && <div className="truncate text-[0.6875rem] text-muted">{sub}</div>}
     </div>
   );
 }
@@ -34,7 +34,7 @@ export function StatsStrip() {
         className="flex w-full items-center gap-2 px-4 py-1.5 text-left text-xs text-muted hover:text-ink"
         aria-expanded={open}
       >
-        {open ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+        {open ? <ChevronDown className="size-[0.8125rem]" /> : <ChevronUp className="size-[0.8125rem]" />}
         <span className="font-medium">Range stats</span>
         {stats && (
           <span className="truncate">

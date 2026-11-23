@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
-import { usePrefs } from '@/state/prefs';
+import { rootPxFor, usePrefs } from '@/state/prefs';
 import { useWorkspace } from '@/state/workspace';
 import { useDatasets } from '@/state/datasets';
 import { chartTheme, type ThemeName } from '@/render/theme';
@@ -25,10 +25,21 @@ export function useThemeName(): ThemeName {
   return name;
 }
 
+/** Root font size in px for the chosen interface size; keeps <html> in sync. */
+export function useRootPx(): number {
+  const scale = usePrefs((s) => s.uiScale);
+  const px = rootPxFor(scale);
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${px}px`;
+  }, [px]);
+  return px;
+}
+
 export function useChartTheme() {
   const name = useThemeName();
   const convention = usePrefs((s) => s.colorConvention);
-  return useMemo(() => chartTheme(name, convention), [name, convention]);
+  const rootPx = useRootPx();
+  return useMemo(() => chartTheme(name, convention, rootPx / 16), [name, convention, rootPx]);
 }
 
 export function useActiveMeta(): DatasetMeta | null {

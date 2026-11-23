@@ -71,6 +71,11 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Icons keep their size inside tight flex rows (buttons, chips, menus). */
+svg.lucide {
+  flex-shrink: 0;
+}
+
 /* Visible focus rings for keyboard users (design/06 §6). */
 :focus-visible {
   outline: 2px solid var(--accent);

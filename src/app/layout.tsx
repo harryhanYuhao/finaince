@@ -16,12 +16,20 @@ export const viewport: Viewport = {
   ],
 };
 
-// Applies the saved theme before first paint to avoid a light/dark flash.
+// Applies the saved theme and interface size before first paint (no flash or jump).
+// Keep the size logic in sync with autoRootPx() in src/state/prefs.ts.
 const themeScript = `(() => { try {
   const p = JSON.parse(localStorage.getItem('finaince.prefs') || '{}').state || {};
   const t = p.theme || 'system';
   const dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
+  const sizes = { small: 14, normal: 16, large: 18, xlarge: 20 };
+  let px = sizes[p.uiScale];
+  if (!px) {
+    const w = Math.max(screen.width, screen.height), dpr = devicePixelRatio || 1;
+    px = dpr <= 1.05 && w >= 3200 ? 20 : dpr <= 1.05 && w >= 2500 ? 18 : 16;
+  }
+  document.documentElement.style.fontSize = px + 'px';
 } catch {} })();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

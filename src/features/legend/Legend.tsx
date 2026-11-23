@@ -67,7 +67,7 @@ export function Legend() {
             {nonCausal ? (
               <>
                 {' '}
-                <AlertTriangle size={11} /> uses future
+                <AlertTriangle className="size-[0.6875rem]" /> uses future
               </>
             ) : (
               ' ⟶'
@@ -80,7 +80,7 @@ export function Legend() {
         {spec.volume !== 'off' && meta.volumeKind === 'tick' && <Chip onClick={openSettings} title="Tick volume counts price updates, not traded shares">Tick vol{spec.volume === 'log' ? ' · log' : ''}</Chip>}
         {notes > 0 && (
           <Chip onClick={() => ui.set({ dataNotesOpen: true })} title="Data notes from import">
-            <Info size={11} /> {notes} note{notes > 1 ? 's' : ''}
+            <Info className="size-[0.6875rem]" /> {notes} note{notes > 1 ? 's' : ''}
           </Chip>
         )}
       </div>

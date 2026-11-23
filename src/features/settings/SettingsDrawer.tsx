@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { Field, IconButton, NumberSlider, Segmented, Select, Toggle } from '@/components/ui';
 import { useWorkspace } from '@/state/workspace';
-import { usePrefs } from '@/state/prefs';
+import { autoRootPx, usePrefs } from '@/state/prefs';
 import { useUi } from '@/state/ui';
 import { DEFAULT_SPEC } from '@/core/model/spec';
 import type { ChartSpec, LineStyle } from '@/core/model/spec';
@@ -97,11 +97,11 @@ export function SettingsDrawer() {
   const logBlocked = meta.report.notes.some((n) => n.code === 'non-positive');
 
   return (
-    <aside aria-label="Chart settings" className="animate-drawer flex h-full w-full flex-col overflow-y-auto border-l border-line bg-surface sm:w-[320px]">
+    <aside aria-label="Chart settings" className="animate-drawer flex h-full w-full flex-col overflow-y-auto border-l border-line bg-surface sm:w-[20rem]">
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-4 py-3">
         <h2 className="text-sm font-semibold">{isLine ? 'Line chart settings' : 'Candle settings'}</h2>
         <IconButton label="Close settings" onClick={() => set({ settingsOpen: false })}>
-          <X size={16} />
+          <X className="size-[1rem]" />
         </IconButton>
       </div>
 
@@ -335,6 +335,25 @@ export function SettingsDrawer() {
       </Section>
 
       <Section title="Appearance">
+        <Field
+          label="Interface size"
+          hint={prefs.uiScale === 'auto' ? `Auto: ${autoRootPx() === 16 ? 'normal' : autoRootPx() === 18 ? 'large' : 'extra large'} for this screen. Browser zoom (Ctrl +/−) also works.` : 'Browser zoom (Ctrl +/−) also works.'}
+          info="Scales buttons, icons, text and chart labels together. Auto enlarges the interface on high-resolution screens running at 100% display scaling."
+        >
+          <Segmented
+            label="Interface size"
+            size="sm"
+            value={prefs.uiScale}
+            onChange={prefs.setUiScale}
+            options={[
+              { value: 'auto', label: 'Auto' },
+              { value: 'small', label: 'S', title: 'Small' },
+              { value: 'normal', label: 'M', title: 'Normal' },
+              { value: 'large', label: 'L', title: 'Large' },
+              { value: 'xlarge', label: 'XL', title: 'Extra large' },
+            ]}
+          />
+        </Field>
         <Field label="Up / down colours">
           <Segmented
             label="Colour convention"

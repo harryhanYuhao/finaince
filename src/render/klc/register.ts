@@ -161,7 +161,7 @@ export function registerKlcExtensions(): void {
   });
 
   // Measure tool: Δprice, Δ%, Δbars between two clicks.
-  registerOverlay<{ fill: string; text: string; up: string; down: string; precision: number }>({
+  registerOverlay<{ fill: string; text: string; up: string; down: string; precision: number; scale: number }>({
     name: FX_MEASURE,
     totalStep: 3,
     needDefaultPointFigure: true,
@@ -172,6 +172,7 @@ export function registerKlcExtensions(): void {
       const [a, b] = coordinates;
       const [pa, pb] = overlay.points;
       const ext = overlay.extendData;
+      const k = ext.scale ?? 1;
       const dv = (pb.value ?? 0) - (pa.value ?? 0);
       const pct = pa.value ? (dv / pa.value) * 100 : 0;
       const bars = (pb.dataIndex ?? 0) - (pa.dataIndex ?? 0);
@@ -187,8 +188,8 @@ export function registerKlcExtensions(): void {
         {
           type: 'text',
           ignoreEvent: true,
-          attrs: { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 6, text, align: 'center', baseline: 'bottom' },
-          styles: { color: '#fff', backgroundColor: color, borderRadius: 4, paddingLeft: 6, paddingRight: 6, paddingTop: 3, paddingBottom: 3, size: 12 },
+          attrs: { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 6 * k, text, align: 'center', baseline: 'bottom' },
+          styles: { color: '#fff', backgroundColor: color, borderRadius: 4 * k, paddingLeft: 6 * k, paddingRight: 6 * k, paddingTop: 3 * k, paddingBottom: 3 * k, size: Math.round(12 * k) },
         },
       ];
     },

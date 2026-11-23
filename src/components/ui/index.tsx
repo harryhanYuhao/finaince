@@ -13,14 +13,15 @@ type ButtonVariant = 'ghost' | 'subtle' | 'primary' | 'outline';
 
 export const Button = forwardRef<
   HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: 'sm' | 'md'; active?: boolean }
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: 'sm' | 'md' | 'icon'; active?: boolean }
 >(function Button({ variant = 'ghost', size = 'md', active, className, ...props }, ref) {
   return (
     <button
       ref={ref}
       className={cx(
         'inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40',
-        size === 'sm' ? 'h-7 px-2 text-xs' : 'h-8 px-3 text-sm',
+        // One padding class per size: conflicting utilities (px-3 vs px-0) resolve by CSS order, not class order.
+        size === 'sm' ? 'h-7 px-2 text-xs' : size === 'icon' ? 'size-8 text-sm' : 'h-8 px-3 text-sm',
         variant === 'ghost' && 'text-ink hover:bg-surface-2',
         variant === 'subtle' && 'bg-surface-2 text-ink hover:bg-grid',
         variant === 'outline' && 'border border-line bg-surface text-ink hover:bg-surface-2',
@@ -40,7 +41,7 @@ export function IconButton({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; active?: boolean }) {
   return (
-    <Button aria-label={label} title={label} className={cx('w-8 px-0', className)} {...props}>
+    <Button aria-label={label} title={label} size="icon" className={className} {...props}>
       {children}
     </Button>
   );
@@ -97,7 +98,7 @@ export function Field({ label, hint, children, info }: { label: ReactNode; hint?
       <div className="flex items-center gap-1 text-xs font-medium text-muted">
         <span>{label}</span>
         {info && (
-          <span className="cursor-help rounded-full border border-line px-1 text-[10px] leading-4" title={info}>
+          <span className="cursor-help rounded-full border border-line px-1 text-[0.625rem] leading-4" title={info}>
             i
           </span>
         )}
@@ -150,7 +151,7 @@ export function Toggle({ checked, onChange, label, hint }: { checked: boolean; o
         onCheckedChange={onChange}
         className="relative mt-0.5 h-5 w-9 shrink-0 rounded-full bg-grid transition-colors data-[state=checked]:bg-accent"
       >
-        <RSwitch.Thumb className="block h-4 w-4 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[18px]" />
+        <RSwitch.Thumb className="block h-4 w-4 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[1.125rem]" />
       </RSwitch.Root>
     </label>
   );
@@ -256,7 +257,7 @@ export function Dialog({
             </div>
             <RDialog.Close asChild>
               <IconButton label="Close">
-                <X size={16} />
+                <X className="size-[1rem]" />
               </IconButton>
             </RDialog.Close>
           </div>

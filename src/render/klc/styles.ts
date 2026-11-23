@@ -17,20 +17,22 @@ export function buildStyles(theme: ChartTheme, spec: ChartSpec): DeepPartial<Sty
   const rawIsGhost = smoothing;
   const rawColor = rawIsGhost ? theme.ghost : theme.accent;
   const showIncomplete = spec.candle.showIncomplete;
+  // Chart text follows the interface size (design/06 §6); KLineChart sizes are in CSS px.
+  const px = (n: number) => Math.round(n * theme.scale);
 
-  const axisText = { color: theme.textMuted, size: 11, family: theme.font, weight: 'normal' };
+  const axisText = { color: theme.textMuted, size: px(11), family: theme.font, weight: 'normal' };
   const crossText = {
     show: true,
     color: theme.bg,
-    size: 11,
+    size: px(11),
     family: theme.font,
     weight: 'normal',
-    borderRadius: 4,
+    borderRadius: px(4),
     borderSize: 0,
-    paddingLeft: 6,
-    paddingRight: 6,
-    paddingTop: 3,
-    paddingBottom: 3,
+    paddingLeft: px(6),
+    paddingRight: px(6),
+    paddingTop: px(3),
+    paddingBottom: px(3),
     backgroundColor: theme.textMuted,
   };
   const crossLine = { show: true, style: 'dashed' as const, dashedValue: [4, 3], size: 1, color: theme.textMuted };
@@ -71,15 +73,15 @@ export function buildStyles(theme: ChartTheme, spec: ChartSpec): DeepPartial<Sty
       },
       priceMark: {
         show: true,
-        high: { show: !isLine, color: theme.textMuted, textSize: 10, textFamily: theme.font },
-        low: { show: !isLine, color: theme.textMuted, textSize: 10, textFamily: theme.font },
+        high: { show: !isLine, color: theme.textMuted, textSize: px(10), textFamily: theme.font },
+        low: { show: !isLine, color: theme.textMuted, textSize: px(10), textFamily: theme.font },
         last: {
           show: true,
           upColor: isLine ? theme.accent : up,
           downColor: isLine ? theme.accent : down,
           noChangeColor: isLine ? theme.accent : neutral,
           line: { show: true, style: 'dashed', dashedValue: [2, 3], size: 1 },
-          text: { show: true, size: 11, family: theme.font, borderRadius: 4, paddingLeft: 5, paddingRight: 5, paddingTop: 3, paddingBottom: 3, color: '#FFFFFF' },
+          text: { show: true, size: px(11), family: theme.font, borderRadius: px(4), paddingLeft: px(5), paddingRight: px(5), paddingTop: px(3), paddingBottom: px(3), color: '#FFFFFF' },
         },
       },
       tooltip: { showRule: 'none' },
@@ -117,7 +119,7 @@ export function buildStyles(theme: ChartTheme, spec: ChartSpec): DeepPartial<Sty
         activeRadius: 4,
       },
       line: { color: theme.accent, size: 1 },
-      text: { color: theme.text, family: theme.font, size: 12 },
+      text: { color: theme.text, family: theme.font, size: px(12) },
     },
   };
 }

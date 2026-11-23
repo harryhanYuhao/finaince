@@ -189,7 +189,7 @@ export class KlcEngine {
         if (type === 'init') this.hasOlder = p.hasOlder;
         else this.hasOlder = p.hasOlder;
         callback(data, type === 'init' ? { forward: p.hasOlder, backward: false } : { forward: p.hasOlder });
-        requestAnimationFrame(() => this.afterLoad(type === 'init'));
+        setTimeout(() => this.afterLoad(type === 'init'), 0); // not rAF: it pauses in background tabs
       } catch (e) {
         if (gen === this.generation) {
           callback([], false);
@@ -427,7 +427,7 @@ export class KlcEngine {
     this.chart.createOverlay({
       name: FX_MEASURE,
       groupId: 'measure',
-      extendData: { fill: input.theme.accentSoft, text: input.theme.text, up: input.theme.up, down: input.theme.down, precision: input.meta.precision },
+      extendData: { fill: input.theme.accentSoft, text: input.theme.text, up: input.theme.up, down: input.theme.down, precision: input.meta.precision, scale: input.theme.scale },
     });
   }
 

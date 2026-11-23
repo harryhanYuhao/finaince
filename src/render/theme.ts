@@ -20,11 +20,13 @@ export interface ChartTheme {
   ghost: string;
   gap: string;
   font: string;
+  /** Interface scale (root font size / 16); chart text and strokes follow it. */
+  scale: number;
 }
 
 const FONT = 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
 
-const BASE: Record<ThemeName, Omit<ChartTheme, 'up' | 'down'>> = {
+const BASE: Record<ThemeName, Omit<ChartTheme, 'up' | 'down' | 'scale'>> = {
   light: {
     name: 'light',
     bg: '#FBFAF7',
@@ -62,11 +64,11 @@ const UP_DOWN: Record<ThemeName, { jade: string; vermilion: string; mono: [strin
   dark: { jade: '#33C08E', vermilion: '#F0665C', mono: ['#E6E8EC', '#7A808B'] },
 };
 
-export function chartTheme(name: ThemeName, convention: ColorConvention): ChartTheme {
+export function chartTheme(name: ThemeName, convention: ColorConvention, scale = 1): ChartTheme {
   const c = UP_DOWN[name];
   const [up, down] =
     convention === 'greenUp' ? [c.jade, c.vermilion] : convention === 'redUp' ? [c.vermilion, c.jade] : c.mono;
-  return { ...BASE[name], up, down };
+  return { ...BASE[name], up, down, scale };
 }
 
 /** `#RRGGBB` → `rgba(r,g,b,a)`. */

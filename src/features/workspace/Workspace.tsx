@@ -41,7 +41,7 @@ export default function Workspace() {
                 <Headline />
                 <RangeBar />
               </div>
-              <div className="relative min-h-[240px] flex-1 border-t border-line">
+              <div className="relative min-h-[15rem] flex-1 border-t border-line">
                 {loading && (
                   <div className="absolute inset-x-0 top-0 z-20 h-0.5 overflow-hidden">
                     <div className="animate-progress h-full w-1/3 bg-accent" />

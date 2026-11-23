@@ -50,7 +50,7 @@ function CustomRange() {
     >
       <PopoverTrigger asChild>
         <Button size="sm" active={custom} title="Custom date range">
-          <CalendarRange size={14} />
+          <CalendarRange className="size-[0.875rem]" />
           <span className="hidden md:inline">Custom</span>
         </Button>
       </PopoverTrigger>
@@ -119,7 +119,7 @@ export function IntervalPicker() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" title={isLine ? 'Sampling step (accuracy)' : 'Candle interval'} className="min-w-[64px]">
+        <Button variant="outline" size="sm" title={isLine ? 'Sampling step (accuracy)' : 'Candle interval'} className="min-w-[4rem]">
           {auto && <span className="text-muted">Auto ·</span>}
           {intervalShortLabel(effective)}
           {isApprox && (
@@ -127,7 +127,7 @@ export function IntervalPicker() {
               ≈
             </span>
           )}
-          <ChevronDown size={13} className="text-muted" />
+          <ChevronDown className="size-[0.8125rem] text-muted" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64">
@@ -237,7 +237,7 @@ export function RangeBar() {
             value: 'candle',
             label: (
               <>
-                <CandlestickChart size={14} /> <span className="hidden sm:inline">Candle</span>
+                <CandlestickChart className="size-[0.875rem]" /> <span className="hidden sm:inline">Candle</span>
               </>
             ),
             title: meta.synthetic ? 'Candles need open/high/low data' : 'Candlestick chart (C)',
@@ -247,7 +247,7 @@ export function RangeBar() {
             value: 'line',
             label: (
               <>
-                <LineChart size={14} /> <span className="hidden sm:inline">Line</span>
+                <LineChart className="size-[0.875rem]" /> <span className="hidden sm:inline">Line</span>
               </>
             ),
             title: 'Line chart (L)',

@@ -36,15 +36,15 @@ Supported inputs (see `design/03-data-model-and-ingestion.md`):
 
 ### Running
 
-Requires Node.js 20+.
+Requires Node.js 20+ and [pnpm](https://pnpm.io) 11 (the version is pinned in `package.json` → `packageManager`).
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000
-npm test           # unit + property tests (Vitest)
-npm run typecheck
-npm run lint
-npm run build      # production build
+pnpm install
+pnpm dev           # http://localhost:3000
+pnpm test          # unit + property tests (Vitest)
+pnpm typecheck
+pnpm lint
+pnpm build         # production build
 ```
 
 ### Project layout

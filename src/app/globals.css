@@ -1,0 +1,134 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens (design/06 §4). Mirrored for the chart in src/render/theme.ts. */
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --surface-2: #f4f2ec;
+  --grid: #ece9e2;
+  --border: #e3dfd6;
+  --text: #1b1d22;
+  --text-muted: #6b6f78;
+  --up: #1e9e72;
+  --down: #d9534a;
+  --accent: #3d5afe;
+  --accent-soft: rgba(61, 90, 254, 0.12);
+  --warn: #b8892b;
+  --shadow: 0 10px 30px -12px rgba(27, 29, 34, 0.22), 0 2px 6px -2px rgba(27, 29, 34, 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0f1115;
+  --surface: #161a21;
+  --surface-2: #1c212a;
+  --grid: #222833;
+  --border: #2a303b;
+  --text: #e6e8ec;
+  --text-muted: #8b919c;
+  --up: #33c08e;
+  --down: #f0665c;
+  --accent: #7c8cff;
+  --accent-soft: rgba(124, 140, 255, 0.16);
+  --warn: #d9a441;
+  --shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-grid: var(--grid);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --shadow-pop: var(--shadow);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visible focus rings for keyboard users (design/06 §6). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.animate-drawer {
+  animation: drawer-in 160ms ease-out;
+}
+
+.animate-fade {
+  animation: fade-in 140ms ease-out;
+}
+
+.animate-progress {
+  animation: progress 1.1s ease-in-out infinite;
+}
+
+/* Range slider styling */
+input[type='range'] {
+  accent-color: var(--accent);
+}

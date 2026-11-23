@@ -27,6 +27,21 @@ export interface RangeStats {
   gaps: number;
 }
 
+const YEAR = 365.2425 * DAY;
+
+/**
+ * Bars per year for annualising. Weeks and longer follow the calendar. Daily and intraday bars
+ * only exist on trading days (≈252 a year), so their rate is measured from the series itself.
+ */
+export function periodsPerYearOf(bars: BarSeries, interval: Interval): number {
+  const nominal = YEAR / intervalMs(interval);
+  if (interval.unit !== 'day' && interval.unit !== 'hour' && interval.unit !== 'minute') return nominal;
+  const n = bars.length;
+  const span = n > 1 ? bars.time[n - 1] - bars.time[0] : 0;
+  if (span >= 28 * DAY) return (n - 1) / (span / YEAR);
+  return interval.unit === 'day' ? 252 / interval.count : nominal;
+}
+
 /** Stats for bars with `from ≤ time ≤ to`. Incomplete and partial bars are excluded. */
 export function rangeStats(bars: BarSeries, interval: Interval, from: number, to: number): RangeStats | null {
   const idx: number[] = [];
@@ -80,8 +95,8 @@ export function rangeStats(bars: BarSeries, interval: Interval, from: number, to
   }
   const firstClose = bars.close[first];
   const lastClose = bars.close[last];
-  const years = (bars.time[last] - bars.time[first]) / (365.2425 * DAY);
-  const periodsPerYear = (365.2425 * DAY) / intervalMs(interval);
+  const years = (bars.time[last] - bars.time[first]) / YEAR;
+  const periodsPerYear = periodsPerYearOf(bars, interval);
   let volatility: number | null = null;
   if (rets.length >= 3) {
     const mean = rets.reduce((s, r) => s + r, 0) / rets.length;

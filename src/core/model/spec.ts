@@ -5,6 +5,7 @@ import type { Interval } from './types';
 import type { Alignment } from '../transforms/resample';
 import type { PriceSource } from '../transforms/priceSource';
 import type { SmoothingSpec } from '../transforms/smoothing';
+import type { Span, StartDate } from '../time/customRange';
 
 export type ChartType = 'candle' | 'line';
 export type CandleStyle = 'candle_solid' | 'candle_stroke' | 'ohlc';
@@ -14,7 +15,8 @@ export type VolumeMode = 'off' | 'linear' | 'log';
 export type DisplayZone = 'exchange' | 'local' | 'utc';
 export type RangePreset = '1M' | '3M' | '6M' | 'YTD' | '1Y' | '5Y' | '10Y' | 'MAX';
 
-export type TimeFrame = { preset: RangePreset } | { from: number; to: number };
+/** A preset, or a custom span shown from a start date (design/04 §1.1). */
+export type TimeFrame = { preset: RangePreset } | { start: StartDate; span: Span };
 
 export interface CandleSettings {
   interval: Interval | 'base';

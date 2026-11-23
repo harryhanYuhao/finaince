@@ -13,7 +13,15 @@ This document defines exactly what each user setting means mathematically. "Rigo
 
 ### 1.1 Time frame presets (both chart types)
 
-`1M · 3M · 6M · YTD · 1Y · 5Y · 10Y · Max · Custom…` (Custom opens a two-date picker with typed inputs).
+`1M · 3M · 6M · YTD · 1Y · 5Y · 10Y · Max · Custom…`.
+
+**Custom** sets *how much* to show and *where it starts*, not two end dates:
+
+- **Range:** `N` × days / weeks / months / years: the span shown on screen.
+- **Start:** Year, then Month, then Day, as separate fields, plus a calendar button that fills all three. A missing day means the 1st of the month; a missing month and day means 1 January. A day without a month, or a month or day without a year, is an *unknown date*: the picker says so and explains the expected input. Impossible days (30 February) are rejected the same way.
+- The window is the trading dates `[start, start + span)`. Months and years clamp to the end of a shorter month (31 Jan + 1 month → 28/29 Feb). Bar times map to trading dates by the session rule (03 §5), so an evening session's bar opening the evening before the start date is included.
+- The window is clamped to the data, with a note when it starts before the first bar or ends after the last. A start after the data, a window ending before it, or a span shorter than two base bars is refused with a message. A live preview shows the dates covered.
+- Stored in the spec as `{ start: { year, month?, day? }, span: { count, unit } }`, so a partial start stays partial when the popover is reopened.
 Presets are resolved against the dataset's **last bar** (not "today"), so an old file still shows meaningful ranges. Presets shorter than ~5 target bars are disabled (for weekly data, `1M` would be about 4 candles).
 
 **Ranges that don't fit.** KLineChart shows at most `plotWidth / minBarSpace` bars at once. Candles narrower than ~3 px are unreadable, so for candle charts a preset showing more bars than `plotWidth / 3` (for example "Max" on weekly data: 1,506 candles in a 1,200 px plot) shows as many as fit, ending at the range end. A hint chip then offers "Switch to monthly to see the whole range", and the rest is a pan away to the left. Nothing is silently resampled.

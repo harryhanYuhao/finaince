@@ -53,12 +53,23 @@ export function hashString(str: string, seed = 0): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-function toTable(text: string): string[][] {
+function hashSeed(s: string): number {
+  return parseInt(hashString(s).slice(0, 6), 36);
+}
+
+function toTable(text: string): { rows: string[][]; delimiter: string } {
   const trimmed = text.trimStart();
-  if (trimmed.startsWith('[') || trimmed.startsWith('{')) return jsonToTable(trimmed);
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) return { rows: jsonToTable(trimmed), delimiter: ',' };
   const res = Papa.parse<string[]>(text, { skipEmptyLines: 'greedy' });
   if (res.data.length === 0) throw new IngestError('The file is empty.');
-  return res.data;
+  return { rows: res.data, delimiter: res.meta.delimiter };
+}
+
+/** Semicolon files whose prices look like "975,25" use a decimal comma. */
+function usesDecimalComma(delimiter: string, body: string[][], col: number): boolean {
+  if (delimiter !== ';') return false;
+  const sample = body.slice(0, 50).map((r) => r[col]?.trim() ?? '').filter(Boolean);
+  return sample.some((v) => /^-?[\d.]*\d,\d+$/.test(v)) && !sample.some((v) => /^-?\d+\.\d+$/.test(v) && !v.includes(','));
 }
 
 /** JSON adapter: array of bar objects, or columnar `{ t:[], o:[], h:[], l:[], c:[], v:[] }`. */
@@ -93,7 +104,7 @@ function jsonToTable(text: string): string[][] {
 export function ingestText(rawText: string, opts: IngestOptions): Dataset {
   const text = rawText.replace(/^﻿/, '');
   if (!text.trim()) throw new IngestError('The file is empty.');
-  const table = toTable(text);
+  const { rows: table, delimiter } = toTable(text);
   const header = table[0].map((h) => h.replace(/^﻿/, ''));
   const body = table.slice(1);
   if (body.length === 0) throw new IngestError('The file has a header but no data rows.');
@@ -127,6 +138,9 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
     });
   }
 
+  const decimalComma = usesDecimalComma(delimiter, body, mapping.close);
+  const num = (raw: string | undefined) => parseNumber(raw, decimalComma);
+
   // Parse rows into temporary arrays.
   const n0 = body.length;
   const t = new Float64Array(n0);
@@ -143,10 +157,10 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
   for (let r = 0; r < n0; r++) {
     const row = body[r];
     const time = parseTimeCell(row[mapping.time] ?? '', timeKind);
-    const close = parseNumber(row[mapping.close]);
-    const open = synthetic ? close : parseNumber(row[mapping.open!]);
-    const high = synthetic ? close : parseNumber(row[mapping.high!]);
-    const low = synthetic ? close : parseNumber(row[mapping.low!]);
+    const close = num(row[mapping.close]);
+    const open = synthetic ? close : num(row[mapping.open!]);
+    const high = synthetic ? close : num(row[mapping.high!]);
+    const low = synthetic ? close : num(row[mapping.low!]);
     if (!Number.isFinite(time) || !Number.isFinite(close) || !Number.isFinite(open) || !Number.isFinite(high) || !Number.isFinite(low)) {
       if (badRows.length < 20) badRows.push(`row ${r + 2}`);
       continue;
@@ -163,7 +177,7 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
     h[k] = high;
     l[k] = low;
     c[k] = close;
-    v[k] = mapping.volume !== undefined ? parseNumber(row[mapping.volume]) : NaN;
+    v[k] = mapping.volume !== undefined ? num(row[mapping.volume]) : NaN;
     f[k] =
       (complete === false ? 0 : BarFlag.Complete) |
       BarFlag.TradingDay |
@@ -227,7 +241,7 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
   // Interval, session and precision inference.
   const baseInterval = inferBaseInterval(bars.time);
   const { session, confident } = inferSession(bars.time, baseInterval);
-  if (timeKind === 'date' || timeKind === 'iso-local') {
+  if (timeKind === 'date' || timeKind === 'compact-date' || timeKind === 'iso-local') {
     // Local times: re-anchor to the session zone (identity for UTC).
     for (let j = 0; j < n; j++) bars.time[j] = fromWallClock(session.timeZone, bars.time[j]);
   }
@@ -241,7 +255,7 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
 
   const hint = parseFileNameHint(opts.fileName);
   if (hint.interval) {
-    const hinted = parseInterval(hint.interval.replace(/mo|mn$/i, 'M'));
+    const hinted = parseInterval(hint.interval.replace(/(mo|mn)$/i, 'M'));
     if (hinted && !sameInterval(hinted, baseInterval)) {
       notes.push({
         severity: 'warn',
@@ -251,7 +265,10 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
     }
   }
 
-  const precision = inferPrecision(bars.close);
+  // All price columns count: closes alone can have fewer decimals than highs and lows.
+  const precision = synthetic
+    ? inferPrecision(bars.close)
+    : Math.max(inferPrecision(bars.open), inferPrecision(bars.high), inferPrecision(bars.low), inferPrecision(bars.close));
   const inconsistent: string[] = [];
   let nonPositive = 0;
   for (let j = 0; j < n; j++) {
@@ -299,7 +316,8 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
 
   const symbol = hint.symbol ?? opts.fileName.replace(/\.[^.]+$/, '');
   const meta: DatasetMeta = {
-    id: hashString(text),
+    // A different column choice gives different bars, so it must be a different dataset.
+    id: opts.roles ? hashString(text, hashSeed(opts.roles.join(',') + (opts.volumeKind ?? ''))) : hashString(text),
     symbol,
     displayName: symbol,
     source: hint.source,

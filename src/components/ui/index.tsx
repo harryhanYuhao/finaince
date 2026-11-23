@@ -39,7 +39,7 @@ export function IconButton({
   children,
   className,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; active?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; active?: boolean; variant?: ButtonVariant }) {
   return (
     <Button aria-label={label} title={label} size="icon" className={className} {...props}>
       {children}

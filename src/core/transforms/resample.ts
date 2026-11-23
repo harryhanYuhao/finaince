@@ -47,6 +47,13 @@ function calendarKey(t: number, target: Interval, session: SessionSpec): number 
   }
 }
 
+/** Median bars per bucket, ignoring the (possibly partial) first and last buckets. */
+function typicalCount(counts: Int32Array, nominal: number): number {
+  if (counts.length < 3) return nominal;
+  const inner = Array.from(counts.subarray(1, counts.length - 1)).sort((a, b) => a - b);
+  return inner[Math.floor(inner.length / 2)];
+}
+
 export function resample(src: BarSeries, target: Interval, opts: ResampleOptions): ResampleResult {
   const validity = checkTarget(opts.base, target);
   if (!validity.ok) throw new Error(validity.reason);
@@ -106,7 +113,9 @@ export function resample(src: BarSeries, target: Interval, opts: ResampleOptions
     const expected = intervalMs(target) / intervalMs(opts.base);
     const per = Math.max(1, Math.round(expected));
     if (opts.alignment === 'calendar') {
-      const threshold = Math.max(1, Math.floor(expected * 0.75));
+      // Compare edge buckets with the typical full bucket in this data, not with calendar time:
+      // a month of daily bars has ~21 trading days, not 30.
+      const threshold = Math.max(1, Math.ceil(typicalCount(counts, expected) * 0.75));
       if (counts[0] < threshold) out.flags[0] |= BarFlag.PartialStart;
       if (counts[m - 1] < threshold) out.flags[m - 1] &= ~BarFlag.Complete;
     } else if (opts.alignment === 'rollingFirst') {

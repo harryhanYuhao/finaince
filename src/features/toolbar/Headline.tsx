@@ -7,6 +7,7 @@ import { formatBarTime, formatPct, formatPrice, formatSigned } from '@/render/fo
 import { useActiveMeta, useHover } from '../workspace/hooks';
 import { useDerivation } from '../workspace/useDerivation';
 import { cx } from '@/components/ui';
+import { spanLabel, startDateLabel } from '@/core/time/customRange';
 
 const PRESET_LABEL: Record<string, string> = {
   '1M': 'past month',
@@ -42,7 +43,11 @@ export function Headline() {
 
   const caption = hover
     ? `${formatBarTime(hover.time, meta, dspec?.interval ?? null, spec.displayZone)}${incomplete ? ' · incomplete bar' : ''} · vs. start of view`
-    : ('preset' in spec.timeFrame && stats ? PRESET_LABEL[spec.timeFrame.preset] + ' (in view)' : 'in view') +
+    : ('preset' in spec.timeFrame && stats
+        ? PRESET_LABEL[spec.timeFrame.preset] + ' (in view)'
+        : 'start' in spec.timeFrame
+          ? `${spanLabel(spec.timeFrame.span)} from ${startDateLabel(spec.timeFrame.start)} (in view)`
+          : 'in view') +
       (incomplete ? ' · latest bar still forming' : '');
 
   return (

@@ -106,14 +106,22 @@ export function smooth(x: Float64Array, spec: SmoothingSpec, logSpace = false): 
   return logSpace ? out.map(Math.exp) : out;
 }
 
+// Missing values (NaN, e.g. a price ≤ 0 smoothed in log space) blank only the windows that
+// contain them; the moving averages recover afterwards instead of staying NaN.
+
 export function sma(x: Float64Array, n: number): Float64Array {
   const out = new Float64Array(x.length).fill(NaN);
   if (n < 1) return out;
   let sum = 0;
+  let missing = 0; // NaNs in the current window
   for (let i = 0; i < x.length; i++) {
-    sum += x[i];
-    if (i >= n) sum -= x[i - n];
-    if (i >= n - 1) out[i] = sum / n;
+    if (Number.isFinite(x[i])) sum += x[i];
+    else missing++;
+    if (i >= n) {
+      if (Number.isFinite(x[i - n])) sum -= x[i - n];
+      else missing--;
+    }
+    if (i >= n - 1 && missing === 0) out[i] = sum / n;
   }
   return out;
 }
@@ -122,6 +130,19 @@ export function wma(x: Float64Array, n: number): Float64Array {
   const out = new Float64Array(x.length).fill(NaN);
   if (n < 1) return out;
   const denom = (n * (n + 1)) / 2;
+  if (!x.every(Number.isFinite)) {
+    // Rare path: direct sum per window.
+    outer: for (let i = n - 1; i < x.length; i++) {
+      let num = 0;
+      for (let k = 0; k < n; k++) {
+        const v = x[i - n + 1 + k];
+        if (!Number.isFinite(v)) continue outer;
+        num += (k + 1) * v;
+      }
+      out[i] = num / denom;
+    }
+    return out;
+  }
   let total = 0; // plain sum of the window
   let num = 0; // weighted sum, newest weight n
   for (let i = 0; i < x.length; i++) {
@@ -138,16 +159,31 @@ export function wma(x: Float64Array, n: number): Float64Array {
   return out;
 }
 
+/** EMA seeded with the SMA of the first `span` values; re-seeded after a missing value. */
 export function ema(x: Float64Array, span: number): Float64Array {
   const out = new Float64Array(x.length).fill(NaN);
-  if (span < 1 || x.length < span) return out;
+  if (span < 1) return out;
   const alpha = 2 / (span + 1);
+  let prev = NaN;
+  let run = 0; // consecutive finite values while seeding
   let seed = 0;
-  for (let i = 0; i < span; i++) seed += x[i];
-  let prev = seed / span;
-  out[span - 1] = prev;
-  for (let i = span; i < x.length; i++) {
-    prev = alpha * x[i] + (1 - alpha) * prev;
+  for (let i = 0; i < x.length; i++) {
+    const v = x[i];
+    if (!Number.isFinite(v)) {
+      prev = NaN;
+      run = 0;
+      seed = 0;
+      continue;
+    }
+    if (Number.isNaN(prev)) {
+      seed += v;
+      if (++run === span) {
+        prev = seed / span;
+        out[i] = prev;
+      }
+      continue;
+    }
+    prev = alpha * v + (1 - alpha) * prev;
     out[i] = prev;
   }
   return out;

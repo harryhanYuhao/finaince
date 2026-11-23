@@ -30,6 +30,9 @@ export function OverviewStrip() {
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    // Measure now too: ResizeObserver doesn't fire in background tabs.
+    const pad = parseFloat(getComputedStyle(el).paddingLeft) + parseFloat(getComputedStyle(el).paddingRight);
+    setWidth(Math.floor(el.clientWidth - (pad || 0)));
     const ro = new ResizeObserver(([e]) => setWidth(Math.floor(e.contentRect.width)));
     ro.observe(el);
     return () => ro.disconnect();
@@ -64,21 +67,24 @@ export function OverviewStrip() {
     let min = Infinity;
     let max = -Infinity;
     for (let i = 0; i < n; i++) {
-      min = Math.min(min, data.lo[i]);
-      max = Math.max(max, data.hi[i]);
+      if (data.lo[i] < min) min = data.lo[i]; // NaN (missing) buckets never compare
+      if (data.hi[i] > max) max = data.hi[i];
     }
+    if (!(max >= min)) return;
     const y = (v: number) => HEIGHT - 4 - ((v - min) / Math.max(1e-9, max - min)) * (HEIGHT - 8);
     // Area under the high envelope + min/max band, so spikes are never hidden.
+    const ok: number[] = [];
+    for (let i = 0; i < n; i++) if (Number.isFinite(data.lo[i]) && Number.isFinite(data.hi[i])) ok.push(i);
     ctx.beginPath();
-    ctx.moveTo(0, HEIGHT);
-    for (let i = 0; i < n; i++) ctx.lineTo(xOf(data.time[i]), y(data.hi[i]));
-    ctx.lineTo(xOf(data.time[n - 1]), HEIGHT);
+    ctx.moveTo(xOf(data.time[ok[0]]), HEIGHT);
+    for (const i of ok) ctx.lineTo(xOf(data.time[i]), y(data.hi[i]));
+    ctx.lineTo(xOf(data.time[ok[ok.length - 1]]), HEIGHT);
     ctx.closePath();
     ctx.fillStyle = withAlpha(theme.textMuted, 0.14);
     ctx.fill();
     ctx.beginPath();
-    for (let i = 0; i < n; i++) ctx.lineTo(xOf(data.time[i]), y(data.hi[i]));
-    for (let i = n - 1; i >= 0; i--) ctx.lineTo(xOf(data.time[i]), y(data.lo[i]));
+    for (const i of ok) ctx.lineTo(xOf(data.time[i]), y(data.hi[i]));
+    for (let k = ok.length - 1; k >= 0; k--) ctx.lineTo(xOf(data.time[ok[k]]), y(data.lo[ok[k]]));
     ctx.closePath();
     ctx.fillStyle = withAlpha(theme.textMuted, 0.6);
     ctx.strokeStyle = withAlpha(theme.textMuted, 0.6);
@@ -142,8 +148,11 @@ export function OverviewStrip() {
           if (!visible) return;
           const span = visible.to - visible.from;
           const c = (visible.from + visible.to) / 2;
-          if (e.key === 'ArrowLeft') moveTo(c - span / 2, span);
-          if (e.key === 'ArrowRight') moveTo(c + span / 2, span);
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          // Handled here; don't let the global shortcut scroll the chart as well.
+          e.preventDefault();
+          e.stopPropagation();
+          moveTo(e.key === 'ArrowLeft' ? c - span / 2 : c + span / 2, span);
         }}
       />
     </div>

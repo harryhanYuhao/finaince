@@ -66,7 +66,7 @@ One drawer with sections that change with the chart type. Every control applies 
 2. *Volume*: Off / Linear / Log, colour by direction, pane vs. overlay.
 
 **Line mode**
-1. *Time frame*: mirrors the range bar, plus a Custom date-range picker.
+1. *Time frame*: mirrors the range bar, plus Custom: a span (N days / weeks / months / years) and a start date entered as Year · Month · Day, where the month and day are optional (04 §1.1).
 2. *Accuracy*: slider `Auto · Every bar · 2× · 4× · …` over the valid sampling steps, with an effective step readout ("Auto: 1 point per 2 weeks · 754 points"). Advanced: price source.
 3. *Smoothing*: method selector as cards with tiny sparkline previews of each method on the current data; parameter slider with time equivalent ("20 points ≈ 20 weeks"); causal/non-causal badge; "show raw line" toggle; "smooth in log space".
 4. *Style*: line/area/baseline/step, width, colour.

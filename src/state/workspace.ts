@@ -59,6 +59,9 @@ export const useWorkspace = create<WorkspaceState>()(
       merge: (persisted, current) => {
         const p = persisted as { spec?: Partial<ChartSpec> } | undefined;
         if (!p?.spec) return current;
+        // Custom ranges used to be stored as { from, to }; drop that shape.
+        const tf = p.spec.timeFrame as Record<string, unknown> | undefined;
+        if (tf && !('preset' in tf) && !('start' in tf)) delete p.spec.timeFrame;
         // Shallow-merge onto defaults so new fields get defaults after upgrades.
         return {
           ...current,

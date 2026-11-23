@@ -6,6 +6,7 @@ import { checkTarget, intervalMs } from '@/core/time/interval';
 import { autoStep } from '@/core/transforms/autoStep';
 import { tradingDay } from '@/core/time/tradingDate';
 import { DAY, civilToDays, daysToCivil } from '@/core/time/tz';
+import { customRange } from '@/core/time/customRange';
 
 export const RANGE_PRESETS: RangePreset[] = ['1M', '3M', '6M', 'YTD', '1Y', '5Y', '10Y', 'MAX'];
 
@@ -18,7 +19,12 @@ function minusMonths(t: number, months: number): number {
 /** Presets are resolved against the dataset's last bar, not "today" (design/04 §1.1). */
 export function resolveTimeFrame(tf: TimeFrame, meta: DatasetMeta): TimeRange {
   const { from: first, to: last } = meta.range;
-  if ('from' in tf) return { from: Math.max(first, tf.from), to: Math.min(last, tf.to) };
+  if ('start' in tf) {
+    // Clamp to the data; a window entirely outside it falls back to the nearest edge.
+    const r = customRange(tf.start, tf.span, meta.session);
+    const from = Math.min(Math.max(first, r.from), last);
+    return { from, to: Math.max(from, Math.min(last, r.to)) };
+  }
   let from: number;
   switch (tf.preset) {
     case '1M':

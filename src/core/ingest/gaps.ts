@@ -32,7 +32,7 @@ export function detectGaps(bars: BarSeries, base: Interval, session: SessionSpec
         missing = Math.floor((monthIndex(day) - monthIndex(prevDay)) / base.count) - 1;
         break;
       case 'year':
-        missing = daysToCivil(day).year - daysToCivil(prevDay).year - base.count;
+        missing = Math.floor((daysToCivil(day).year - daysToCivil(prevDay).year) / base.count) - 1;
         break;
       case 'day':
       case 'hour':

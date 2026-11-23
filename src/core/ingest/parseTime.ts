@@ -3,13 +3,25 @@
 const ISO_DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 const ISO_FULL = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/;
 const NUMERIC = /^-?\d+(\.\d+)?$/;
+const COMPACT_DATE = /^(\d{4})(\d{2})(\d{2})$/;
 
-export type TimeKind = 'iso' | 'iso-local' | 'date' | 'epoch-s' | 'epoch-ms' | 'unknown';
+export type TimeKind = 'iso' | 'iso-local' | 'date' | 'compact-date' | 'epoch-s' | 'epoch-ms' | 'unknown';
+
+function compactDate(s: string): number {
+  const m = COMPACT_DATE.exec(s);
+  if (!m) return NaN;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const t = Date.UTC(y, mo - 1, d);
+  // Reject roll-overs such as month 13 or 31 February.
+  return mo >= 1 && mo <= 12 && new Date(t).getUTCDate() === d ? t : NaN;
+}
 
 export function classifyTime(sample: string): TimeKind {
   const s = sample.trim();
   if (ISO_DATE_ONLY.test(s)) return 'date';
   if (ISO_FULL.test(s)) return /(Z|[+-]\d{2}:?\d{2})$/.test(s) ? 'iso' : 'iso-local';
+  // YYYYMMDD (e.g. 20240301) would otherwise read as epoch seconds in 1970.
+  if (COMPACT_DATE.test(s) && Number(s.slice(0, 4)) >= 1800 && Number(s.slice(0, 4)) <= 2200 && Number.isFinite(compactDate(s))) return 'compact-date';
   if (NUMERIC.test(s)) {
     const n = Number(s);
     // Seconds since epoch stay below 1e11 until the year 5138; milliseconds are above it after 1973.
@@ -33,6 +45,8 @@ export function parseTimeCell(raw: string, kind: TimeKind): number {
       const m = ISO_DATE_ONLY.exec(s);
       return m ? Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : NaN;
     }
+    case 'compact-date':
+      return compactDate(s);
     case 'epoch-s':
       return Number(s) * 1000;
     case 'epoch-ms':
@@ -50,9 +64,14 @@ export function parseBool(raw: string | undefined): boolean | null {
   return null;
 }
 
-export function parseNumber(raw: string | undefined): number {
+/**
+ * Parse a number cell. With `decimalComma` (semicolon-delimited European files) "1.234,5" is
+ * 1234.5; otherwise commas are thousands separators.
+ */
+export function parseNumber(raw: string | undefined, decimalComma = false): number {
   if (raw === undefined) return NaN;
-  const s = raw.trim().replace(/^"|"$/g, '').replace(/,/g, '');
+  let s = raw.trim().replace(/^"|"$/g, '');
+  s = decimalComma ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
   if (s === '') return NaN;
   return Number(s);
 }

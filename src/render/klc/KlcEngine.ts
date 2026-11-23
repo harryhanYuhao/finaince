@@ -387,8 +387,16 @@ export class KlcEngine {
     this.cb.onOverflow(ideal < readable ? { shown: Math.floor(plotWidth / readable), total: count } : null);
     const current = chart.getBarSpace().bar;
     if (Math.abs(current - space) > 1e-6) chart.setBarSpace(space);
-    if (b >= list.length - 1) chart.scrollToRealTime(animate ? 250 : undefined);
-    else chart.scrollToDataIndex(b, animate ? 250 : undefined);
+    const scroll = (ms?: number) => (b >= list.length - 1 ? chart.scrollToRealTime(ms) : chart.scrollToDataIndex(b, ms));
+    scroll(animate ? 250 : undefined);
+    // Animations run on requestAnimationFrame, which stalls in background or hidden views; land anyway.
+    if (animate) {
+      setTimeout(() => {
+        if (this.chart !== chart || chart.getDataList() !== list) return;
+        const vr = chart.getVisibleRange();
+        if (b < vr.from || b >= vr.to) scroll();
+      }, 400);
+    }
   }
 
   private scheduleVisibleRange(): void {

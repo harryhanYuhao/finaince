@@ -96,9 +96,10 @@ export function checkTarget(base: Interval, target: Interval): IntervalValidity 
           ? { ok: true, approx: false }
           : { ok: false, reason: `Hours must divide evenly into ${base.count}-minute bars` };
       }
-      return { ok: true, approx: false };
+      // Bars must tile the day, or day-and-longer buckets would split bars.
+      return 1440 % base.count === 0 ? { ok: true, approx: false } : { ok: false, reason: `${base.count}-minute bars don't divide a day evenly` };
     case 'hour':
-      return { ok: true, approx: false };
+      return 24 % base.count === 0 ? { ok: true, approx: false } : { ok: false, reason: `${base.count}-hour bars don't divide a day evenly` };
     case 'day':
       return { ok: true, approx: false };
     case 'week':

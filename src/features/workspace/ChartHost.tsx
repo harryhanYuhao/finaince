@@ -72,8 +72,13 @@ export function ChartHost() {
     if (!dspec || !visible) return;
     let cancelled = false;
     const t = setTimeout(async () => {
-      const stats = await dataWorker().stats(dspec, visible.from, visible.to);
-      if (!cancelled) useUi.getState().set({ stats });
+      try {
+        const stats = await dataWorker().stats(dspec, visible.from, visible.to);
+        if (!cancelled) useUi.getState().set({ stats });
+      } catch {
+        // The dataset was removed or replaced meanwhile; the next range change retries.
+        if (!cancelled) useUi.getState().set({ stats: null });
+      }
     }, 60);
     return () => {
       cancelled = true;

@@ -170,12 +170,12 @@ export function overview(d: Derived, n: number): Overview {
     let h = -Infinity;
     for (let i = a; i < e; i++) {
       const v = src[i];
-      if (v < l) l = v;
+      if (v < l) l = v; // NaN never compares, so missing values are skipped
       if (v > h) h = v;
     }
     time[b] = d.bars.time[a];
-    lo[b] = l;
-    hi[b] = h;
+    lo[b] = l === Infinity ? NaN : l;
+    hi[b] = h === -Infinity ? NaN : h;
   }
   return { time, lo, hi };
 }

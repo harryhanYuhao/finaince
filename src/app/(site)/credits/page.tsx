@@ -21,7 +21,7 @@ export default function CreditsPage() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <Link href="/" className="text-sm text-accent hover:underline">
-        ← Back to charts
+        ← Home
       </Link>
       <h1 className="mt-6 text-2xl font-semibold">Credits</h1>
       <p className="mt-2 text-muted">

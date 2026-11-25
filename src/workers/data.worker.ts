@@ -34,6 +34,7 @@ const api: DataWorkerApi = {
         roles: req.roles,
         volumeKind: req.volumeKind,
         origin: req.origin,
+        idKey: req.idKey,
       });
       datasets.set(ds.meta.id, ds);
       clearMemo(ds.meta.id);

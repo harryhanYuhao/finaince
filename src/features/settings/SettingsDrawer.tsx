@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { Field, IconButton, NumberSlider, Segmented, Select, Toggle } from '@/components/ui';
 import { useWorkspace } from '@/state/workspace';
-import { autoRootPx, usePrefs } from '@/state/prefs';
 import { useUi } from '@/state/ui';
 import { DEFAULT_SPEC } from '@/core/model/spec';
 import type { ChartSpec, LineStyle } from '@/core/model/spec';
@@ -86,7 +85,6 @@ export function SettingsDrawer() {
   const meta = useActiveMeta();
   const dspec = useDerivation();
   const set = useUi((s) => s.set);
-  const prefs = usePrefs();
   if (!meta) return null;
 
   const u = (group: string) => (recipe: (d: Draft<ChartSpec>) => void) => update(recipe, group);
@@ -334,38 +332,7 @@ export function SettingsDrawer() {
         </Field>
       </Section>
 
-      <Section title="Appearance">
-        <Field
-          label="Interface size"
-          hint={prefs.uiScale === 'auto' ? `Auto: ${autoRootPx() === 16 ? 'normal' : autoRootPx() === 18 ? 'large' : 'extra large'} for this screen. Browser zoom (Ctrl +/−) also works.` : 'Browser zoom (Ctrl +/−) also works.'}
-          info="Scales buttons, icons, text and chart labels together. Auto enlarges the interface on high-resolution screens running at 100% display scaling."
-        >
-          <Segmented
-            label="Interface size"
-            size="sm"
-            value={prefs.uiScale}
-            onChange={prefs.setUiScale}
-            options={[
-              { value: 'auto', label: 'Auto' },
-              { value: 'small', label: 'S', title: 'Small' },
-              { value: 'normal', label: 'M', title: 'Normal' },
-              { value: 'large', label: 'L', title: 'Large' },
-              { value: 'xlarge', label: 'XL', title: 'Extra large' },
-            ]}
-          />
-        </Field>
-        <Field label="Up / down colours">
-          <Segmented
-            label="Colour convention"
-            value={prefs.colorConvention}
-            onChange={prefs.setColorConvention}
-            options={[
-              { value: 'greenUp', label: 'Green up' },
-              { value: 'redUp', label: 'Red up' },
-              { value: 'mono', label: 'Mono' },
-            ]}
-          />
-        </Field>
+      <Section title="Display">
         <Toggle label="Grid lines" checked={spec.grid} onChange={(v) => update((s) => void (s.grid = v))} />
         <Toggle label="Mark data gaps" hint="Dotted line where expected bars are missing" checked={spec.showGaps} onChange={(v) => update((s) => void (s.showGaps = v))} />
       </Section>

@@ -1,16 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { FileUp, Info, AlertTriangle, XCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, CloudDownload, FileUp, Info, LayoutDashboard, Upload, XCircle } from 'lucide-react';
 import { Button, Dialog, Select, cx } from '@/components/ui';
 import { useUi } from '@/state/ui';
 import { useDatasets } from '@/state/datasets';
 import type { ColumnMapping, ColumnRole } from '@/core/ingest/columns';
 import { intervalLongLabel } from '@/core/time/interval';
 import { formatDateShort } from '@/render/format';
-import { confirmMapping, importFile, loadSample } from './actions';
+import { confirmMapping, importFile, loadSample, resolveData } from './actions';
+import { useWorkspace } from '@/state/workspace';
+import { dataLabel } from '@/core/model/workspace';
+import { importWorkspaceFile, openWorkspace, useWorkspaceList } from '../workspaces/actions';
 import { useActiveMeta } from '../workspace/hooks';
-import { Logo } from '../toolbar/AppBar';
+import { Logo } from '@/components/Logo';
+import { originLabel } from '@/sources/registry';
 
 /** Full-window drop target (design/06 §5 step 1). */
 export function DropOverlay() {
@@ -61,40 +65,144 @@ export function DropOverlay() {
   );
 }
 
+/** Start screen of an empty chart: saved workspaces first, then ways to load data (design/08 §1.4). */
 export function EmptyState() {
   const status = useDatasets((s) => s.status);
+  const currentId = useWorkspace((s) => s.current?.id);
+  const workspaces = useWorkspaceList((s) => s.items).filter((w) => w.id !== currentId);
+  const set = useUi((s) => s.set);
+  const wsFileRef = useRef<HTMLInputElement>(null);
   return (
-    <div className="flex flex-1 items-center justify-center p-6">
-      <div className="w-full max-w-xl rounded-2xl border-2 border-dashed border-line p-8 text-center">
-        <div className="flex justify-center text-lg">
-          <Logo />
-        </div>
-        <h2 className="mt-4 text-xl font-semibold">Drop a price file to start charting</h2>
-        <p className="mt-2 text-sm text-muted">
-          Any CSV or JSON with a time column and price columns (Open, High, Low, Close; Volume optional). Your data stays in this browser.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90">
-            <FileUp className="size-[0.9375rem]" /> Choose a file
+    <div className="flex flex-1 items-center justify-center overflow-y-auto p-6">
+      <div className="w-full max-w-xl space-y-4">
+        {workspaces.length > 0 && (
+          <section aria-label="Your workspaces" className="rounded-2xl border border-line bg-surface p-4">
+            <h2 className="text-sm font-semibold">Open a workspace</h2>
+            <ul className="mt-2 divide-y divide-line">
+              {workspaces.slice(0, 6).map((w) => (
+                <li key={w.id}>
+                  <button className="flex w-full items-center gap-3 py-2 text-left hover:text-accent" onClick={() => void openWorkspace(w.id)}>
+                    <LayoutDashboard className="size-[1rem] shrink-0 text-muted" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{w.name}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {w.charts.map((c) => dataLabel(c.spec.data)).join(', ')} · edited {formatDateShort(w.updatedAt)}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        <div className="rounded-2xl border-2 border-dashed border-line p-8 text-center">
+          <div className="flex justify-center text-lg">
+            <Logo />
+          </div>
+          <h2 className="mt-4 text-xl font-semibold">{workspaces.length ? 'Or start with new data' : 'Drop a price file to start charting'}</h2>
+          <p className="mt-2 text-sm text-muted">
+            Any CSV or JSON with a time column and price columns (Open, High, Low, Close; Volume optional). Your data stays in this browser.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-white hover:opacity-90">
+              <FileUp className="size-[0.9375rem]" /> Choose a file
+              <input
+                type="file"
+                accept=".csv,.txt,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (f) void importFile(f);
+                }}
+              />
+            </label>
+            <Button variant="outline" className="h-9" onClick={() => void loadSample()} disabled={status === 'loading'}>
+              US 500 weekly sample
+            </Button>
+            <Button variant="outline" className="h-9" onClick={() => set({ massiveOpen: true })}>
+              <CloudDownload className="size-[0.9375rem]" /> Massive
+            </Button>
+            <Button variant="ghost" className="h-9" onClick={() => wsFileRef.current?.click()}>
+              <Upload className="size-[0.9375rem]" /> Import workspace
+            </Button>
             <input
+              ref={wsFileRef}
               type="file"
-              accept=".csv,.txt,.json"
+              accept=".json,application/json"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) void importFile(f);
+                e.target.value = '';
+                if (f) void importWorkspaceFile(f);
               }}
             />
-          </label>
-          <Button variant="outline" className="h-9" onClick={() => void loadSample()} disabled={status === 'loading'}>
-            Try the US 500 weekly sample
-          </Button>
+          </div>
+          <ul className="mx-auto mt-6 max-w-sm space-y-1 text-left text-xs text-muted">
+            <li>• Time: ISO dates (2024-03-01, 2024-03-01T22:00:00Z), YYYYMMDD, or epoch seconds/milliseconds</li>
+            <li>• Optional flags: IsCompleteBar, IsTradingDay, MarketOpen</li>
+            <li>• File names like SYMBOL_SOURCE_1w_….csv fill in the symbol</li>
+          </ul>
         </div>
-        <ul className="mx-auto mt-6 max-w-sm space-y-1 text-left text-xs text-muted">
-          <li>• Time: ISO dates (2024-03-01, 2024-03-01T22:00:00Z) or epoch seconds/milliseconds</li>
-          <li>• Optional flags: IsCompleteBar, IsTradingDay, MarketOpen</li>
-          <li>• File names like SYMBOL_SOURCE_1w_….csv fill in the symbol</li>
-        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** The open chart's saved data couldn't be loaded: say why and offer a way forward. */
+export function DataProblem() {
+  const problem = useUi((s) => s.dataProblem);
+  const set = useUi((s) => s.set);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  if (!problem) return null;
+  const ref = problem.ref;
+  const retry = async () => {
+    setBusy(true);
+    await resolveData(ref);
+    setBusy(false);
+  };
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <div role="alert" className="w-full max-w-lg rounded-2xl border border-warn/40 bg-surface p-6">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 size-[1.25rem] text-warn" />
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold">This chart&apos;s data isn&apos;t available</h2>
+            <p className="mt-1 text-sm text-muted">{problem.message}</p>
+            <p className="mt-1 text-xs text-muted">The chart&apos;s settings are kept and apply as soon as data is loaded.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {ref?.kind === 'local' ? (
+                <>
+                  <Button variant="primary" onClick={() => fileRef.current?.click()}>
+                    <FileUp className="size-[0.9375rem]" /> Load {ref.label}
+                  </Button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".csv,.txt,.json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      e.target.value = '';
+                      // Keep the chart's settings; only the data reference is refreshed.
+                      if (f) void importFile(f, { mode: 'replace' });
+                    }}
+                  />
+                </>
+              ) : (
+                ref && (
+                  <Button variant="primary" disabled={busy} onClick={() => void retry()}>
+                    {busy ? 'Trying…' : 'Try again'}
+                  </Button>
+                )
+              )}
+              <Button variant="outline" onClick={() => set({ dataProblem: null })}>
+                Choose other data
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -211,7 +319,7 @@ export function DataNotesDialog() {
     <Dialog open={open} onOpenChange={(o) => set({ dataNotesOpen: o })} title={`Data notes · ${meta.symbol}`} description="What we found when reading the file. The raw data is never changed silently.">
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-lg bg-surface-2 p-3 text-sm">
         <dt className="text-muted">Source</dt>
-        <dd className="truncate">{meta.origin.kind === 'file' ? meta.origin.name : meta.origin.url}</dd>
+        <dd className="truncate">{originLabel(meta.origin)}</dd>
         <dt className="text-muted">Bars</dt>
         <dd className="tabular">
           {r.rowsKept.toLocaleString()} of {r.rowsRead.toLocaleString()} rows

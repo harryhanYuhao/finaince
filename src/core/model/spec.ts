@@ -35,9 +35,18 @@ export interface LineSettings {
   width: 1 | 2 | 3 | 4;
 }
 
+/** Where a chart's data comes from (design/08 §1.1). Saved with the chart; bars are not. */
+export type DataRef =
+  | { kind: 'local'; datasetId: string; label: string }
+  | { kind: 'sample'; sample: 'us500' }
+  | { kind: 'massive'; ticker: string; multiplier: number; timespan: 'minute' | 'hour' | 'day' | 'week'; years: number }
+  | { kind: 'custom'; endpoint: string; symbol: string };
+
 export interface ChartSpec {
   version: 1;
+  /** Runtime binding to the loaded dataset; re-resolved from `data` when a workspace opens. */
   datasetId: string | null;
+  data: DataRef | null;
   chartType: ChartType;
   timeFrame: TimeFrame;
   candle: CandleSettings;
@@ -52,6 +61,7 @@ export interface ChartSpec {
 export const DEFAULT_SPEC: ChartSpec = {
   version: 1,
   datasetId: null,
+  data: null,
   chartType: 'candle',
   timeFrame: { preset: '1Y' },
   candle: { interval: 'base', alignment: 'calendar', style: 'candle_solid', showIncomplete: true },

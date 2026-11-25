@@ -9,14 +9,17 @@ import { RangeBar } from '../toolbar/RangeBar';
 import { Legend } from '../legend/Legend';
 import { StatsStrip } from '../legend/StatsStrip';
 import { SettingsDrawer } from '../settings/SettingsDrawer';
-import { DataNotesDialog, DropOverlay, EmptyState, MappingDialog } from '../data-import/ImportUi';
+import { DataNotesDialog, DataProblem, DropOverlay, EmptyState, MappingDialog } from '../data-import/ImportUi';
 import { ExportDialog } from '../export/ExportDialog';
-import { bootstrap } from '../data-import/actions';
+import { MassiveDialog } from '../data-import/MassiveDialog';
 import { ChartHost } from './ChartHost';
 import { OverviewStrip } from './OverviewStrip';
-import { Toasts } from './Toasts';
+import { MessageStack } from '../messages/Messages';
+import { ChartSettingsButton } from '../settings/ChartSettingsButton';
 import { useActiveMeta, useThemeName } from './hooks';
 import { useShortcuts } from './useShortcuts';
+import { useFreshness } from './useFreshness';
+import { enterChartTool } from '../workspaces/actions';
 
 export default function Workspace() {
   useThemeName();
@@ -25,9 +28,12 @@ export default function Workspace() {
   const status = useDatasets((s) => s.status);
   const settingsOpen = useUi((s) => s.settingsOpen);
   const loading = useUi((s) => s.loading);
+  const dataProblem = useUi((s) => s.dataProblem);
+
+  useFreshness(meta);
 
   useEffect(() => {
-    void bootstrap();
+    void enterChartTool();
   }, []);
 
   return (
@@ -49,10 +55,13 @@ export default function Workspace() {
                 )}
                 <ChartHost />
                 <Legend />
+                <ChartSettingsButton />
               </div>
               <OverviewStrip />
               <StatsStrip />
             </>
+          ) : dataProblem ? (
+            <DataProblem />
           ) : status === 'loading' ? (
             <div className="flex flex-1 items-center justify-center text-sm text-muted">Loading your data…</div>
           ) : (
@@ -69,7 +78,8 @@ export default function Workspace() {
       <MappingDialog />
       <DataNotesDialog />
       <ExportDialog />
-      <Toasts />
+      <MassiveDialog />
+      <MessageStack />
     </div>
   );
 }

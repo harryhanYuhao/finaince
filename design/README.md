@@ -31,3 +31,4 @@ An interactive, good-looking stock chart for user-supplied data (first format: `
 5. [05-chart-spec-and-rendering.md](05-chart-spec-and-rendering.md): ChartSpec schema, RenderPage, ChartEngine and KLineChart adapter, DataLoader paging, interactions
 6. [06-ui-ux.md](06-ui-ux.md): layout, settings drawer, visual identity, import flow, accessibility
 7. [07-roadmap-and-quality.md](07-roadmap-and-quality.md): milestones (incl. KLineChart spike), tests, performance budgets, licensing, open questions
+8. [08-workspaces-and-symbol-pages.md](08-workspaces-and-symbol-pages.md): saved chart-tool workspaces (format, data references, autosave, export/import, hand-off) and the planned symbol pages

@@ -140,8 +140,20 @@ describe('time and number cells', () => {
     const csv = 'Date;Open;High;Low;Close\n2024-03-01;10,5;11,25;10,0;11,0\n2024-03-04;11,0;12,0;10,75;11,5\n';
     const ds = ingestText(csv, { fileName: 'x.csv' });
     expect(Array.from(ds.bars.high)).toEqual([11.25, 12]);
-    // Audit: precision came from closes only, which rounded the 11.25 high to 11.3.
+    // Audit: precision came from closes only, and every price was rounded to it (11.25 → 11.3).
     expect(ds.meta.precision).toBe(2);
+  });
+
+  it('keeps sub-penny highs and lows without raising the displayed precision', () => {
+    // Real Massive SPY data: closes have 2 decimals, ~15% of highs/lows have 3–4 (odd-lot prints).
+    const rows = ['time,open,high,low,close'];
+    for (let i = 0; i < 40; i++) {
+      const d = new Date(Date.UTC(2024, 0, 1 + i)).toISOString().slice(0, 10);
+      rows.push(`${d},600.5${i % 10},602.${10 + i},${i % 6 === 0 ? '599.3805' : '599.38'},601.2${i % 10}`);
+    }
+    const ds = ingestText(rows.join('\n'), { fileName: 'x.csv' });
+    expect(ds.meta.precision).toBe(2);
+    expect(ds.bars.low[0]).toBe(599.3805);
   });
 
   it('ingests compact dates end to end', () => {

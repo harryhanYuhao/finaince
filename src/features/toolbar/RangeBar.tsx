@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { CalendarDays, CalendarRange, CandlestickChart, ChevronDown, LineChart } from 'lucide-react';
+import { CalendarDays, CalendarRange, CandlestickChart, ChevronDown, Info, LineChart } from 'lucide-react';
 import { Button, IconButton, Popover, PopoverContent, PopoverTrigger, Segmented, Select, cx } from '@/components/ui';
 import { useWorkspace } from '@/state/workspace';
 import { useUi } from '@/state/ui';
@@ -352,6 +352,41 @@ export function IntervalPicker() {
   );
 }
 
+/**
+ * "316 of 1,506 bars shown" when the time frame doesn't fit at a readable bar width. Shown here,
+ * next to the time frame, rather than over the chart.
+ */
+function ViewNote() {
+  const meta = useActiveMeta();
+  const overflow = useUi((s) => s.overflow);
+  const spec = useWorkspace((s) => s.spec);
+  const update = useWorkspace((s) => s.update);
+  const dspec = useDerivation();
+  if (!meta || !overflow || !dspec) return null;
+  const canGoMonthly =
+    spec.chartType === 'candle' && ['minute', 'hour', 'day', 'week'].includes(dspec.interval.unit) && checkTarget(meta.baseInterval, { unit: 'month', count: 1 }).ok;
+  return (
+    <p className="flex min-w-0 items-center gap-1 text-xs text-muted" title="Bars are kept wide enough to read. Drag the chart right, or use the overview strip, to see older bars.">
+      <Info className="size-[0.8125rem] shrink-0" />
+      <span className="truncate">
+        {overflow.shown.toLocaleString()} of {overflow.total.toLocaleString()} bars shown · drag for older
+      </span>
+      {canGoMonthly && (
+        <button
+          className="shrink-0 font-medium text-accent hover:underline"
+          onClick={() =>
+            update((s) => {
+              s.candle.interval = { unit: 'month', count: 1 };
+            })
+          }
+        >
+          · monthly
+        </button>
+      )}
+    </p>
+  );
+}
+
 export function RangeBar() {
   const meta = useActiveMeta();
   const spec = useWorkspace((s) => s.spec);
@@ -385,6 +420,7 @@ export function RangeBar() {
         })}
         <CustomRange />
       </div>
+      <ViewNote />
       <div className="flex-1" />
       <Segmented
         label="Chart type"

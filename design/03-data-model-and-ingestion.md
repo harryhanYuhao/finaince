@@ -144,3 +144,10 @@ interface SessionSpec {
 | 1.5k | Sample weekly file | Parse < 50 ms, every interaction instant |
 | 100k | 30 years of hourly | Parse < 1 s (streamed), resample < 50 ms |
 | 2M | Years of 1-minute | Parse streamed with a progress bar; loaded in pages as the user scrolls back; `Auto` interval/step picks a coarser level for long time frames with a notice |
+
+## 7. Data sources and freshness
+
+- **Sources** (`src/sources/registry.ts`): every dataset records its `origin` — file upload, bundled sample, Massive (formerly Polygon.io), custom API. Uploads and the sample are *snapshots*; Massive and a custom API are *live*.
+- **Massive** goes through the app's own server: `GET /api/massive/aggs?ticker&multiplier&timespan&from&to` (`src/app/api/massive/aggs/route.ts`, `src/server/massive.ts`). The key is `MASSIVE_API_KEY` on the server and is sent upstream as `Authorization: Bearer`; it never reaches the browser. Parameters are validated so they cannot change the upstream path, and `next_url` pages are followed only on the configured host. The JSON response goes through the normal ingest (the JSON adapter reads `results[].t/o/h/l/c/v`). A re-fetch keeps one dataset per ticker and interval (`idKey`), and the chart reloads because the import time changes.
+- **Later:** users register on FinAInce and the server provisions their Massive access; the browser API stays the same.
+- **Freshness** (`src/core/time/freshness.ts`): bars are grouped into periods of the dataset's interval (business days, weeks, months…). With *current* the period of the latest session that has started (weekends skipped, session open respected), the data is up to date when it has a bar for the current period, or the complete bar of the period before. Otherwise a finished period is missing, or the last bar was still forming when its period ended. Intraday data is judged per trading day. Holidays are unknown, so the message mentions them. Checked on open and every 5 minutes; shown as a persistent message (06 §9) that says whether the source is a snapshot or live.

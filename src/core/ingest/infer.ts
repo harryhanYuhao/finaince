@@ -4,8 +4,11 @@ import type { Interval, SessionSpec } from '../model/types';
 import { detectInterval, intervalMs } from '../time/interval';
 import { DAY, MINUTE, toWallClock } from '../time/tz';
 
-/** Smallest number of decimals that represents (almost) every price exactly. */
-export function inferPrecision(values: ArrayLike<number>, maxSample = 2000): number {
+/**
+ * Smallest number of decimals that represents the share `coverage` of the values exactly
+ * (default: almost all of them).
+ */
+export function inferPrecision(values: ArrayLike<number>, maxSample = 2000, coverage = 0.99): number {
   const n = values.length;
   if (n === 0) return 2;
   const step = Math.max(1, Math.floor(n / maxSample));
@@ -22,7 +25,7 @@ export function inferPrecision(values: ArrayLike<number>, maxSample = 2000): num
   }
   if (decimals.length === 0) return 2;
   decimals.sort((a, b) => a - b);
-  return decimals[Math.min(decimals.length - 1, Math.floor(decimals.length * 0.99))];
+  return decimals[Math.min(decimals.length - 1, Math.floor(decimals.length * coverage))];
 }
 
 export function roundTo(v: number, decimals: number): number {

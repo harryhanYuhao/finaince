@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Download, FileUp, Moon, Redo2, Ruler, Settings2, Sun, Trash2, Undo2, Monitor } from 'lucide-react';
+import { ChevronDown, CloudDownload, Download, FileUp, Moon, Redo2, Ruler, Sun, Trash2, Undo2, Monitor } from 'lucide-react';
 import { Button, IconButton, Popover, PopoverContent, PopoverTrigger, cx } from '@/components/ui';
 import { useDatasets } from '@/state/datasets';
 import { useUi } from '@/state/ui';
@@ -12,19 +12,12 @@ import { intervalLongLabel } from '@/core/time/interval';
 import { formatDateShort } from '@/render/format';
 import { importFile, loadSample, removeDataset, switchDataset } from '../data-import/actions';
 import { useActiveMeta } from '../workspace/hooks';
+import { Logo } from '@/components/Logo';
+import { UserSettingsButton } from '../settings/UserSettings';
+import { MessageTray } from '../messages/Messages';
+import { sourceOf } from '@/sources/registry';
+import { WorkspaceMenu } from '../workspaces/WorkspaceMenu';
 import { getEngine } from '../workspace/engineRef';
-
-export function Logo() {
-  return (
-    <span className="flex items-center gap-2 font-semibold tracking-tight">
-      <svg width="1.125rem" height="1.125rem" viewBox="0 0 18 18" aria-hidden>
-        <path d="M9 1 17 9 9 17 1 9Z" fill="var(--accent)" />
-        <path d="M5 10.5 8 7.5l2 2 3-3" stroke="#fff" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-      FinAInce
-    </span>
-  );
-}
 
 export function AppBar() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -40,7 +33,11 @@ export function AppBar() {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line px-3 sm:px-4">
-      <Logo />
+      <Link href="/" title="FinAInce home" aria-label="FinAInce home" className="rounded-md hover:opacity-80">
+        <Logo />
+      </Link>
+      <div className="mx-1 h-5 w-px bg-line" />
+      <WorkspaceMenu />
       <div className="mx-1 h-5 w-px bg-line" />
       <Popover>
         <PopoverTrigger asChild>
@@ -61,7 +58,7 @@ export function AppBar() {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-1.5">
-          <div className="px-2 pb-1 pt-1.5 text-xs font-medium text-muted">Datasets on this device</div>
+          <div className="px-2 pb-1 pt-1.5 text-xs font-medium text-muted">Data for this chart · saved on this device</div>
           {Object.values(metas).length === 0 && <div className="px-2 py-2 text-sm text-muted">Nothing imported yet.</div>}
           {Object.values(metas).map((m) => (
             <div
@@ -69,7 +66,9 @@ export function AppBar() {
               className={cx('group flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-surface-2', m.id === meta?.id && 'bg-accent-soft')}
             >
               <button className="min-w-0 flex-1 text-left" onClick={() => void switchDataset(m.id)}>
-                <div className="truncate text-sm font-medium">{m.symbol}</div>
+                <div className="truncate text-sm font-medium">
+                  {m.symbol} <span className="font-normal text-muted">· {sourceOf(m.origin).label}</span>
+                </div>
                 <div className="truncate text-xs text-muted">
                   {intervalLongLabel(m.baseInterval)} · {m.barCount.toLocaleString()} bars · {formatDateShort(m.range.from)} – {formatDateShort(m.range.to)}
                 </div>
@@ -89,6 +88,9 @@ export function AppBar() {
           </button>
           <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" onClick={() => void loadSample()}>
             <span className="w-3.5 text-center">◆</span> Load the US 500 weekly sample
+          </button>
+          <button className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-surface-2" onClick={() => ui.set({ massiveOpen: true })}>
+            <CloudDownload className="size-[0.875rem]" /> Load from Massive…
           </button>
         </PopoverContent>
       </Popover>
@@ -139,12 +141,8 @@ export function AppBar() {
       <IconButton label="Export" disabled={!meta} onClick={() => ui.set({ exportOpen: true })}>
         <Download className="size-[1rem]" />
       </IconButton>
-      <IconButton label="Chart settings" active={ui.settingsOpen} onClick={() => ui.set({ settingsOpen: !ui.settingsOpen })}>
-        <Settings2 className="size-[1rem]" />
-      </IconButton>
-      <Link href="/credits" className="hidden px-1 text-xs text-muted hover:text-ink lg:inline">
-        Credits
-      </Link>
+      <UserSettingsButton />
+      <MessageTray />
     </header>
   );
 }

@@ -18,6 +18,7 @@ export interface IngestRequest {
   roles?: ColumnRole[];
   volumeKind?: ColumnMapping['volumeKind'];
   origin?: DatasetMeta['origin'];
+  idKey?: string;
 }
 
 export interface DataWorkerApi {

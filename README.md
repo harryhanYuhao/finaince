@@ -40,7 +40,8 @@ Requires Node.js 20+ and [pnpm](https://pnpm.io) 11 (the version is pinned in `p
 
 ```bash
 pnpm install
-pnpm dev           # http://localhost:3000
+cp .env.example .env.local   # optional: add MASSIVE_API_KEY to load market data from Massive
+pnpm dev           # http://localhost:3000 (home); charts at /chart
 pnpm test          # unit + property tests (Vitest)
 pnpm typecheck
 pnpm lint
@@ -55,5 +56,8 @@ pnpm build         # production build
 - `src/workers/` — data Web Worker (Comlink)
 - `src/render/klc/` — KLineChart adapter (the only code that imports `klinecharts`)
 - `src/features/` — workspace UI (toolbar, settings, legend, import, export)
-- `src/app/` — Next.js App Router shell
+- `src/app/` — Next.js App Router: site pages in `(site)/` (home, about, search, learn, credits), chart mode in `chart/`, server routes in `api/`
+- `src/site/` — home page and site header components
+- `src/sources/` — data-source registry and the bundled sample
+- `src/server/` — server-only code (Massive client; holds the API key)
 - `tests/` — Vitest tests

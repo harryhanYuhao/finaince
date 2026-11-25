@@ -40,7 +40,7 @@ Defects found and fixed. Each has a regression test in `tests/audit.test.ts`:
 |---|---|---|
 | Ingest | `YYYYMMDD` dates (e.g. `20240301`) were read as epoch seconds in 1970 | New `compact-date` time kind with calendar validation |
 | Ingest | Semicolon files with decimal commas (`975,25`) lost the comma: 97525 | Decimal comma detected from the close column of `;` files |
-| Ingest | Precision came from closes only, so highs/lows with more decimals were rounded | Precision is the maximum over O, H, L, C |
+| Ingest | Every price was rounded to a precision inferred from closes only (an 11.25 high became 11.3) | Prices are never rounded to the display precision (only float noise at 8 decimals). Display precision = what 99% of closes need, raised when most (75%) opens/highs/lows need more. Revised after real Massive data: ~15% of SPY highs/lows are sub-penny prints, which must not make every price show 4 decimals |
 | Ingest | Re-importing a file with a different column mapping kept the same dataset id, so the chart didn't reload | The confirmed mapping is part of the id |
 | Ingest | Gaps in multi-year data were counted in years, not bars | Divide by the interval count |
 | Intervals | Bases that don't tile a day (7m, 5h) were accepted for daily and longer targets | `checkTarget` requires 1440 % m = 0 and 24 % h = 0 |
@@ -53,3 +53,9 @@ Defects found and fixed. Each has a regression test in `tests/audit.test.ts`:
 | Chart | Animated range changes never finished when `requestAnimationFrame` was paused (hidden views) | Jump without animation after 400 ms if the range wasn't reached |
 
 Known and left as is: `listDatasets` reads whole datasets from IndexedDB to list their metadata (slow with many large files). Storing the metadata separately is a stage-2 change.
+
+## Massive, first real data (2026-11-23)
+
+- Daily `t` is 05:00 UTC in winter (midnight New York), so the session is inferred as New York 00:00 and trading dates are correct.
+- Volume can be fractional (`151413318.848991`).
+- See the precision row above for sub-penny highs and lows.

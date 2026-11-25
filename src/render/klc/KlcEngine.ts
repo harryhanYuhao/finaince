@@ -75,6 +75,8 @@ export class KlcEngine {
   private input: EngineInput | null = null;
   private applied = {
     datasetId: '',
+    /** Dataset id + import time: a re-fetch keeps the id but changes the bars. */
+    dataKey: '',
     dkey: '',
     styleKey: '',
     scale: '',
@@ -269,8 +271,14 @@ export class KlcEngine {
 
     const dkey = derivationKey(dspec);
     const rangeKey = JSON.stringify([spec.timeFrame, input.rangeNonce]);
-    if (dkey !== this.applied.dkey || meta.id !== this.applied.datasetId) {
+    const dataKey = `${meta.id}:${meta.importedAt}`;
+    if (dkey !== this.applied.dkey || meta.id !== this.applied.datasetId || dataKey !== this.applied.dataKey) {
       const sameDataset = prev?.meta.id === meta.id;
+      if (this.applied.dataKey && dataKey !== this.applied.dataKey && meta.id === this.applied.datasetId) {
+        // Same dataset, new contents: precision or symbol may have changed.
+        chart.setSymbol({ ticker: meta.symbol, pricePrecision: meta.precision, volumePrecision: meta.volumePrecision });
+      }
+      this.applied.dataKey = dataKey;
       const rangeChanged = rangeKey !== this.applied.rangeKey;
       this.applied.dkey = dkey;
       this.applied.rangeKey = rangeKey;

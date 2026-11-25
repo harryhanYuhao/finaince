@@ -5,6 +5,7 @@ import { KlcEngine } from '@/render/klc/KlcEngine';
 import { resolveDerivation, resolveTimeFrame } from '@/pipeline/resolve';
 import { useWorkspace } from '@/state/workspace';
 import { useUi } from '@/state/ui';
+import { notify } from '@/state/messages';
 import { dataWorker } from '@/workers/client';
 import { intervalLongLabel } from '@/core/time/interval';
 import { formatDateShort, formatPrice } from '@/render/format';
@@ -28,11 +29,8 @@ export function ChartHost() {
     const e = new KlcEngine({
       onVisibleRange: (r) => ui.set({ visibleRange: r }),
       onLoading: (busy) => ui.set({ loading: busy }),
-      onOverflow: (info) =>
-        ui.set({
-          overflowHint: info ? `Showing the latest ${info.shown.toLocaleString()} of ${info.total.toLocaleString()} bars in this range` : null,
-        }),
-      onError: (message) => ui.toast({ kind: 'error', message }),
+      onOverflow: (info) => ui.set({ overflow: info }),
+      onError: (message) => notify('error', message),
       onLastBar: (bar) => ui.set({ lastBar: bar }),
     });
     e.mount(el);

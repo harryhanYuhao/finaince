@@ -113,3 +113,28 @@ One drawer with sections that change with the chart type. Every control applies 
 ## 7. Localisation
 
 `Intl.NumberFormat` / `DateTimeFormat` everywhere, driven by `prefsStore.locale`. Strings are kept in a message catalogue from day one (English only in stage 1). The red-up colour convention is a preference, not tied to locale (suggested by default for zh/ja/ko locales).
+
+## 8. Site pages and chart mode
+
+- **Routes:** `/` (home), `/about`, `/search` (equity search, placeholder), `/learn` (placeholder), `/credits` share the site top bar (Home · About · Equity search · Learn, plus Open charts and User settings). `/chart` is chart mode: the workspace above, with no site bar. Its logo links back to `/`.
+- **Home:** one line on what FinAInce is, Open charts and Search equities (marked Soon), and a read-only candle chart of the last six months of the S&P 500. Until a live source is connected it shows the bundled weekly sample with a **Sample data** label and its date range. Clicking the chart hands the sample to the chart tool (design/08 §1.4): it opens the workspace that already shows the sample, or creates one, with candles and 6M. The address stays `/chart`.
+- The home chart is a separate small KLineChart instance (`render/klc/miniChart.ts`) with zoom and scroll off; it does not use the worker.
+
+## 9. Messages
+
+One floating stack at the bottom right, so it never covers the newest candles or the price axis.
+
+| Kind | Examples | Behaviour |
+|---|---|---|
+| Transient | "Loaded US500", export failed | Shown 15 s, paused while hovered or focused, then deleted. At most four. |
+| Persistent | Data not up to date, import notes | Shown until the user hides it (eye-off). Hidden messages stay in the **message tray** and can be shown again. The owner removes them when the condition ends (another dataset is opened). |
+| Status | "401 of 1,506 bars shown · drag for older · monthly" | Not a message: a line in the range bar next to the time frame. |
+
+- The tray is the bell at the right end of the chart-mode bar; its badge counts hidden messages.
+- Hiding is remembered for the session per message id. The out-of-date id includes the current period, so a hidden warning comes back when the data falls a further period behind.
+- Import notes are a persistent message: hidden in the tray when they are informational, shown when any note is a warning or error. The legend no longer has a notes chip.
+
+## 10. User settings and chart settings
+
+- **User settings** (dialog from the site bar and the chart-mode bar): theme, interface size, up/down colour convention. Stored in `finaince.prefs`; they apply on every page.
+- **Chart settings** (the Chart settings button at the chart's top-right corner opens the side panel): candles or line options, scale and volume, grid and gap marks, display time zone, data notes. Stored in the chart spec, with undo.

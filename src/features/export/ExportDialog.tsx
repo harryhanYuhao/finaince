@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FileImage, FileText, Sheet } from 'lucide-react';
 import { Dialog } from '@/components/ui';
 import { useUi } from '@/state/ui';
+import { notify } from '@/state/messages';
 import { useWorkspace } from '@/state/workspace';
 import { intervalLongLabel } from '@/core/time/interval';
 import { smoothingLabel, SMOOTHERS } from '@/core/transforms/smoothing';
@@ -18,7 +19,6 @@ import { getEngine } from '../workspace/engineRef';
 export function ExportDialog() {
   const open = useUi((s) => s.exportOpen);
   const set = useUi((s) => s.set);
-  const toast = useUi((s) => s.toast);
   const stats = useUi((s) => s.stats);
   const spec = useWorkspace((s) => s.spec);
   const meta = useActiveMeta();
@@ -43,7 +43,7 @@ export function ExportDialog() {
       await fn();
       set({ exportOpen: false });
     } catch (e) {
-      toast({ kind: 'error', message: `Export failed: ${(e as Error).message}` });
+      notify('error', `Export failed: ${(e as Error).message}`);
     } finally {
       setBusy(null);
     }

@@ -16,6 +16,8 @@ export interface IngestOptions {
   roles?: ColumnRole[];
   volumeKind?: ColumnMapping['volumeKind'];
   origin?: DatasetMeta['origin'];
+  /** Stable identity for data that is re-fetched (e.g. "massive:SPY:1day"); replaces the content hash. */
+  idKey?: string;
 }
 
 export interface MappingPreview {
@@ -265,17 +267,20 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
     }
   }
 
-  // All price columns count: closes alone can have fewer decimals than highs and lows.
+  // Display precision: what (almost) all closes need, raised when most opens, highs or lows need
+  // more (e.g. a file whose highs are quoted to a finer tick). Occasional sub-penny highs and lows,
+  // common in exchange aggregates, don't raise it. Values themselves are never rounded to it.
   const precision = synthetic
     ? inferPrecision(bars.close)
-    : Math.max(inferPrecision(bars.open), inferPrecision(bars.high), inferPrecision(bars.low), inferPrecision(bars.close));
+    : Math.max(inferPrecision(bars.close), ...[bars.open, bars.high, bars.low].map((col) => inferPrecision(col, 2000, 0.75)));
   const inconsistent: string[] = [];
   let nonPositive = 0;
   for (let j = 0; j < n; j++) {
-    bars.open[j] = roundTo(bars.open[j], precision);
-    bars.high[j] = roundTo(bars.high[j], precision);
-    bars.low[j] = roundTo(bars.low[j], precision);
-    bars.close[j] = roundTo(bars.close[j], precision);
+    // Only float noise from upstream JSON (689.8099999) is cleaned; real decimals are kept.
+    bars.open[j] = roundTo(bars.open[j], 8);
+    bars.high[j] = roundTo(bars.high[j], 8);
+    bars.low[j] = roundTo(bars.low[j], 8);
+    bars.close[j] = roundTo(bars.close[j], 8);
     if (bars.high[j] < Math.max(bars.open[j], bars.close[j]) || bars.low[j] > Math.min(bars.open[j], bars.close[j])) {
       if (inconsistent.length < 20) inconsistent.push(new Date(bars.time[j]).toISOString().slice(0, 10));
     }
@@ -317,7 +322,7 @@ export function ingestText(rawText: string, opts: IngestOptions): Dataset {
   const symbol = hint.symbol ?? opts.fileName.replace(/\.[^.]+$/, '');
   const meta: DatasetMeta = {
     // A different column choice gives different bars, so it must be a different dataset.
-    id: opts.roles ? hashString(text, hashSeed(opts.roles.join(',') + (opts.volumeKind ?? ''))) : hashString(text),
+    id: opts.idKey ? hashString(opts.idKey) : opts.roles ? hashString(text, hashSeed(opts.roles.join(',') + (opts.volumeKind ?? ''))) : hashString(text),
     symbol,
     displayName: symbol,
     source: hint.source,

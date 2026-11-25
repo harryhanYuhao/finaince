@@ -76,6 +76,14 @@ export interface IngestReport {
   gaps: Gap[];
 }
 
+/** Where a dataset came from (design/03 §7). Live sources are expected to stay up to date. */
+export type DataOrigin =
+  | { kind: 'file'; name: string; size: number }
+  | { kind: 'url'; url: string }
+  | { kind: 'sample'; url: string }
+  | { kind: 'massive'; ticker: string; multiplier: number; timespan: string; fetchedAt: number; years?: number }
+  | { kind: 'custom'; endpoint: string; fetchedAt: number };
+
 export interface DatasetMeta {
   id: string;
   symbol: string;
@@ -89,7 +97,7 @@ export interface DatasetMeta {
   range: { from: number; to: number };
   barCount: number;
   importedAt: number;
-  origin: { kind: 'file'; name: string; size: number } | { kind: 'url'; url: string };
+  origin: DataOrigin;
   report: IngestReport;
   /** True when the source was close-only (candles disabled). */
   synthetic: boolean;
